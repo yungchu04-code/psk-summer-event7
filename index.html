@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSK 深海紅藻：暑期修復大挑戰</title>
+    
+    <meta property="og:title" content="PSK 深海紅藻：暑期修復大挑戰">
+    <meta property="og:description" content="點擊發射面膜！抽取免費面膜兌換碼">
+    <meta property="og:image" content="og-image.png">
+    <meta property="og:type" content="website">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=300;500;700&family=Playfair+Display:wght=600&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #fdfaf5; 
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; 
+            overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh;
+            letter-spacing: 0.05em;
+        }
+        
+        #game-wrapper {
+            position: relative; width: 480px; height: 700px;
+            background: linear-gradient(180deg, #b3e5fc 0%, #ffffff 70%, #fff9c4 100%);
+            border: 1px solid rgba(2, 119, 189, 0.2); border-radius: 40px; overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.1);
+        }
+
+        #hud { position: absolute; top: 0; width: 100%; padding: 25px; display: flex; flex-direction: column; gap: 5px; z-index: 100; }
+        .hud-top { display: flex; justify-content: space-between; align-items: center; }
+        
+        .progress-group { width: 25%; display: flex; flex-direction: column; gap: 4px; }
+        .progress-container { width: 100%; height: 10px; background: rgba(255,255,255,0.5); border-radius: 10px; border: 1px solid rgba(2, 119, 189, 0.2); overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #0277bd, #4fc3f7); transition: width 0.3s ease; }
+        #progress-text { font-size: 12px; color: #0277bd; font-weight: 700; text-align: center; }
+        
+        #lives-display { color:#d32f2f; font-size: 20px; font-weight: 500; }
+        
+        .screen { position: absolute; inset: 0; background: rgba(255,255,255,0.95); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+        
+        #start-screen { justify-content: flex-start; overflow: hidden; padding-top: 20px; padding-bottom: 20px; }
+        #start-screen h2 { margin-bottom: 0px; font-size: 24px !important; }
+        
+        .start-product-img { width: 440px; height: auto; min-height: 50px; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.1)); margin-bottom: 5px; margin-top: -15px; }
+        
+        .start-targets-grid { 
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; 
+            width: 100%; max-width: 400px; margin-bottom: 15px; padding: 0 10px;
+        }
+        .start-target-item { text-align: center; }
+        .start-target-item img { width: 145%; border-radius: 50%; border: 1px solid #eee; background: white; margin-left: -22.5%; }
+        .start-target-item span { display: block; font-size: 10px; color: #666; margin-top: 8px; white-space: nowrap; }
+
+        .face-target { position: absolute; width: 135px; max-width: 28%; text-align: center; cursor: pointer; z-index: 10; min-height: 50px; }
+        .face-target img { width: 100%; border-radius: 50%; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.08)); min-height: 30px; }
+        .skin-label { display: inline-block; font-size: 12px; font-weight: 500; color: #0277bd; background: rgba(255,255,255,0.9); padding: 4px 12px; border-radius: 20px; margin-top: 8px; border: 1px solid rgba(2, 119, 189, 0.2); white-space: nowrap; }
+
+        .algae-bullet {
+            position: absolute; width: 127.5px; height: 127.5px; 
+            z-index: 40; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            pointer-events: none;
+        }
+
+        .feedback-text { position: absolute; font-weight: 700; pointer-events: none; z-index: 200; animation: floatUp 1.5s forwards; text-align: center; width: 220px; font-size: 16px; transform: translateX(-50%); }
+        .score-num { position: absolute; font-size: 24px; font-weight: 900; color: #fbc02d; z-index: 201; animation: floatUp 1s forwards; transform: translateX(-50%); text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        
+        @keyframes floatUp { 
+            0% { opacity: 0; transform: translate(-50%, 0); } 
+            20% { opacity: 1; } 
+            100% { opacity: 0; transform: translate(-50%, -120px); } 
+        }
+
+        #octopus-shooter { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 220px; z-index: 50; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        
+        .shoot-zone-label { 
+            margin-top: -10px; padding: 8px 18px; 
+            color: #0277bd; font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+            line-height: 1.5; text-align: center;
+        }
+
+        .btn { padding: 10px 40px; background: #0277bd; color: white; border: none; border-radius: 4px; font-size: 18px; font-weight: 500; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(2, 119, 189, 0.2); }
+        
+        #result-screen { justify-content: flex-start; overflow-y: auto; }
+        .result-video { width: 90%; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 10px; background: #000; min-height: 150px; }
+        .video-hint { font-size: 13px; color: #0277bd; margin-bottom: 20px; font-weight: 500; }
+        
+        .rules-box {
+            background:#fcfcfc; padding:10px; border: 1px solid #eee; font-size:13px; text-align:center; line-height: 1.7; width: 100%; max-width: 400px;
+        }
+        
+        #congrats-text { font-size: 20px; color: #2e7d32; margin-bottom: 10px; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<div id="game-wrapper">
+    <div id="hud">
+        <div class="hud-top">
+            <div class="progress-group">
+                <div class="progress-container">
+                    <div id="progress-bar"></div>
+                </div>
+                <div id="progress-text">0 / 1000</div>
+            </div>
+            <div id="lives-display">♥ ♥ ♥</div>
+        </div>
+    </div>
+
+    <div id="game-canvas" style="width:100%; height:100%; position:relative;"></div>
+
+    <div id="octopus-shooter">
+        <img src="assets/octopus.png" style="width:50%" onerror="this.style.opacity='0'; this.style.height='10px';">
+        <div id="shoot-zone" class="shoot-zone-label"></div>
+    </div>
+
+    <div id="start-screen" class="screen">
+        <h2 style="color:#0277bd; font-family: 'Playfair Display', serif;">The Skin Rescue</h2>
+        <img src="assets/product-main.png" class="start-product-img" onerror="this.style.opacity='0'; this.style.height='20px';">
+        <div class="start-targets-grid">
+            <div class="start-target-item"><img src="assets/base.png" onerror="this.style.background='#eee';"><span>妝前打底</span></div>
+            <div class="start-target-item"><img src="assets/redness.png" onerror="this.style.background='#eee';"><span>泛紅脫屑</span></div>
+            <div class="start-target-item"><img src="assets/dull.png" onerror="this.style.background='#eee';"><span>氣色不佳</span></div>
+            <div class="start-target-item"><img src="assets/dry.png" onerror="this.style.background='#eee';"><span>乾燥粗糙</span></div>
+            <div class="start-target-item"><img src="assets/sun.png" onerror="this.style.background='#eee';"><span>曬後修護</span></div>
+            <div class="start-target-item"><img src="assets/beauty.png" onerror="this.style.background='#eee';"><span>美容護理</span></div>
+        </div>
+        <p style="font-weight: 700; color: #0277bd; margin-bottom: 2px; font-size: 18px;">活動期間：7/1 ~ 8/31</p>
+        <p style="font-weight: 500; color: #666; margin-bottom: 10px; font-size: 16px;">PSK 暑期肌膚修復挑戰賽</p>
+        <div class="rules-box">
+            <b>遊戲規則</b><br>
+            <span style="color: red;">射中6大膚況</span>：+ 75 分<br>
+            未命中/命中錯誤目標：扣生命值<br>
+            滿 1000 分抽取免費面膜兌換碼
+        </div>
+        <button class="btn" id="btn-start">開始救援 🚀</button>
+    </div>
+
+    <div id="result-screen" class="screen" style="display:none;">
+        <h2 id="result-title" style="font-family: 'Playfair Display', serif; font-size: 26px; margin: 30px 0 15px 0;">Mission Result</h2>
+        <video class="result-video" autoplay muted loop playsinline poster="assets/product-main.png">
+            <source src="assets/octopus-animation.mp4" type="video/mp4">
+            您的瀏覽器不支援播放此影片。
+        </video>
+        <p class="video-hint">觀看動畫以瞭解詳細產品功效！</p>
+        <p id="result-text" style="font-size:20px; font-weight:300; margin-bottom:15px;"></p>
+        
+        <div id="reward-area" style="display:none; width:100%;">
+            <p id="congrats-text">恭喜達成抽獎資格！</p>
+            <p style="font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 15px;">
+                📸 <span style="color: red; font-size: 17px; font-weight: bold;">截圖此畫面</span> ➔ 點擊 [<a href="https://forms.gle/jjxNQyGcRtTeb9co9" target="_blank" style="color: #0277bd; text-decoration: underline; font-weight: bold;">登錄抽獎</a>]<br>
+                <span style="color: red;">填寫 Email</span> 並 <span style="color: red;">上傳截圖</span><br>
+                中獎序號將寄至信箱<br>
+                (可至全台寶雅門市兌換)
+            </p>
+        </div>
+
+        <div id="fail-area" style="display:none;">
+            <p style="font-size: 16px; color: #d32f2f; font-weight: 500; margin-bottom: 10px;">挑戰失敗！再接再厲</p>
+        </div>
+
+        <button onclick="location.reload()" class="btn" style="background:#aaa; font-size: 14px; margin-top: 20px; margin-bottom: 40px;">返回主頁</button>
+    </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    const FOLDER = 'assets/';
+    const PROBLEMS = [
+        { name: '妝前打底', src: 'base.png', heal: true, msg: '提升妝感服貼度', color: '#03a9f4' },
+        { name: '泛紅脫屑', src: 'redness.png', heal: true, msg: '降低泛紅與不適', color: '#ff5722' },
+        { name: '氣色不佳', src: 'dull.png', heal: true, msg: '改善氣色暗沉', color: '#9c27b0' },
+        { name: '乾燥粗糙', src: 'dry.png', heal: true, msg: '修護屏障', color: '#009688' },
+        { name: '曬後修護', src: 'sun.png', heal: true, msg: '修復受損肌膚', color: '#01579b' },
+        { name: '美容護理', src: 'beauty.png', heal: true, msg: '加強保濕', color: '#e91e63' },
+        { name: '完美氣色', src: 'normal.png', heal: false, msg: '完美肌膚無須修復', color: '#d32f2f' }
+    ];
+
+    let bgm = null;
+    let state = { score: 0, lives: 3, active: false, faces: [], lastType: null };
+
+    // 點擊章魚發射
+    document.getElementById('octopus-shooter').addEventListener('click', function(e) {
+        manualShoot();
+    });
+
+    document.getElementById('btn-start').onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // 針對 Chrome/Safari 沙箱優化：只有在此時使用者點擊後，才在記憶體中動態生成音訊，規避瀏覽器預加載審查
+        try {
+            bgm = new Audio();
+            bgm.src = FOLDER + 'bgm.mp3';
+            bgm.loop = true;
+            let playPromise = bgm.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    console.log("Chrome/Safari blocked autoplay sub-system. Game continues safely.");
+                });
+            }
+        } catch(err) {
+            console.log("Audio API not supported or initialized too early.");
+        }
+
+        document.getElementById('start-screen').style.display = 'none';
+        state.active = true;
+        spawnLoop();
+        animate();
+    };
+
+    function spawnLoop() {
+        if (!state.active) return;
+
+        let availableProblems = PROBLEMS.filter(p => p.name !== state.lastType);
+        let pool = [];
+        availableProblems.forEach(p => {
+            let weight = (p.name === '完美氣色') ? 5 : Math.floor(Math.random() * 2) + 1; 
+            for(let i=0; i<weight; i++) pool.push(p);
+        });
+        pool.sort(() => Math.random() - 0.5);
+        const prob = pool[Math.floor(Math.random() * pool.length)];
+        state.lastType = prob.name;
+
+        let newX = Math.random() * 60 + 10;
+        const face = { id: Date.now()+Math.random(), type: prob, x: newX, y: -150, speed: 2.2, hit: false };
+        
+        const el = document.createElement('div');
+        el.className = 'face-target';
+        el.style.left = face.x + '%';
+        el.style.top = face.y + 'px';
+        el.innerHTML = `<img src="${FOLDER + prob.src}" onerror="this.style.background='#eee'; this.style.minHeight='50px';"><div class="skin-label">${prob.name}</div>`;
+        
+        // 修正點擊穿透與綁定
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            createBullet(face);
+        });
+
+        document.getElementById('game-canvas').appendChild(el);
+        face.el = el;
+        state.faces.push(face);
+        
+        setTimeout(spawnLoop, 3000);
+    }
+
+    function createBullet(targetFace) {
+        if (targetFace.hit || !state.active) return;
+        
+        const canvasEl = document.getElementById('game-canvas');
+        if (!canvasEl) return;
+
+        const bullet = document.createElement('div');
+        bullet.className = 'algae-bullet';
+        bullet.style.backgroundImage = `url('${FOLDER}mask-item.png')`;
+        bullet.style.left = '50%';
+        bullet.style.bottom = '80px';
+        bullet.style.transform = 'translateX(-50%) scale(1.2)';
+        document.getElementById('game-wrapper').appendChild(bullet);
+        
+        // 修正 Chrome 幾何測量時差：加上安全預設值防止 rect 抓到 0 導致飛向角落
+        const rect = targetFace.el ? targetFace.el.getBoundingClientRect() : { left: 0, top: 0, width: 100, height: 100 };
+        const wrap = document.getElementById('game-wrapper').getBoundingClientRect();
+        
+        const targetX = (rect.left - wrap.left) + (rect.width / 2);
+        const targetY = (rect.top - wrap.top) + (rect.height / 2);
+        
+        setTimeout(() => {
+            bullet.style.left = targetX + 'px';
+            bullet.style.top = targetY + 'px';
+            bullet.style.transform = 'translateX(-50%) scale(0.9)';
+        }, 16); // 配合 Chrome 的 60fps 刷新率
+
+        setTimeout(() => {
+            bullet.remove();
+            shootAt(targetFace);
+        }, 400);
+    }
+
+    function shootAt(face) {
+        if (face.hit || !state.active) return;
+        face.hit = true;
+        
+        const rect = face.el ? face.el.getBoundingClientRect() : { left: 100, top: 100, width: 50, height: 50 };
+        const wrap = document.getElementById('game-wrapper').getBoundingClientRect();
+        const x = (rect.left - wrap.left) + (rect.width / 2);
+        const y = Math.max(20, rect.top - wrap.top);
+        
+        showPop(face.type.msg, x, y, face.type.color, 'feedback-text');
+        if (face.type.heal) {
+            state.score += 75;
+            showPop("+75", x, y + 40, '#fbc02d', 'score-num');
+            if (state.score >= 1000) endGame(true);
+        } else {
+            state.lives--;
+            if (state.lives <= 0) endGame(false);
+        }
+        updateHUD();
+        setTimeout(() => { if(face.el) face.el.remove(); }, 150);
+    }
+
+    function manualShoot() {
+        if (!state.active) return;
+        const target = state.faces.filter(f => !f.hit).sort((a,b) => b.y - a.y)[0];
+        if (target) createBullet(target);
+    }
+
+    function showPop(text, x, y, color, cls) {
+        const canvas = document.getElementById('game-canvas');
+        if (!canvas) return;
+        const div = document.createElement('div');
+        div.className = cls;
+        div.style.left = x + 'px'; div.style.top = y + 'px'; div.style.color = color;
+        div.textContent = text;
+        canvas.appendChild(div);
+        setTimeout(() => div.remove(), 1500);
+    }
+
+    function updateHUD() {
+        const progress = Math.min(100, (state.score / 1000) * 100);
+        const bar = document.getElementById('progress-bar');
+        const txt = document.getElementById('progress-text');
+        const lives = document.getElementById('lives-display');
+        
+        if (bar) bar.style.width = progress + '%';
+        if (txt) txt.textContent = state.score + " / 1000";
+        if (lives) lives.textContent = '♥ '.repeat(Math.max(0, state.lives));
+    }
+
+    function endGame(isSuccess) {
+        state.active = false;
+        if (bgm) { try { bgm.pause(); } catch(e){} }
+        document.getElementById('result-screen').style.display = 'flex';
+        
+        if (isSuccess && state.score >= 1000) {
+            document.getElementById('result-title').textContent = "Mission Success!";
+            document.getElementById('result-text').textContent = ""; 
+            document.getElementById('reward-area').style.display = 'block';
+            document.getElementById('fail-area').style.display = 'none';
+        } else {
+            document.getElementById('result-title').textContent = "Mission Failed";
+            document.getElementById('result-text').textContent = "本次救援進度：" + state.score + " / 1000";
+            document.getElementById('reward-area').style.display = 'none';
+            document.getElementById('fail-area').style.display = 'block';
+        }
+    }
+
+    function animate() {
+        if (!state.active) return;
+        
+        // 針對 Chrome/Safari 核心最佳化：不讀取會引發重繪時差的 DOM 高度，全面改用穩定的絕對數值判定（底線 520px）
+        const zoneBoundaryY = 520; 
+        
+        for (let i = state.faces.length - 1; i >= 0; i--) {
+            let f = state.faces[i];
+            if (!f.hit) {
+                f.y += f.speed;
+                if (f.el) {
+                    f.el.style.top = f.y + 'px';
+                    if (f.y > zoneBoundaryY) {
+                        if (f.type.heal) { 
+                            state.lives--; 
+                            updateHUD(); 
+                        }
+                        f.el.remove();
+                        state.faces.splice(i, 1);
+                        if (state.lives <= 0) {
+                            endGame(false);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        if (state.active) requestAnimationFrame(animate);
+    }
+});
+</script>
+</body>
+</html>
